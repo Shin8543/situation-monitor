@@ -220,25 +220,24 @@ export function updateFlashback(hoursAgo) {
 
 // Render the global map
 export async function renderGlobalMap(activityData, earthquakes = [], allNews = [], mapLayers, getMonitorHotspots, fetchFlightData, classifyAircraft, getAircraftArrow) {
-    // Check for required globals
-    if (typeof d3 === 'undefined') {
-        console.error('D3 not loaded');
-        return;
-    }
-    if (typeof topojson === 'undefined') {
-        console.error('TopoJSON not loaded');
-        return;
-    }
-
-    // Cache allNews for popup access
-    window.cachedAllNews = allNews;
-
     const panel = document.getElementById('mapPanel');
-    if (!panel) {
-        console.error('mapPanel element not found');
-        return;
-    }
-    const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19) + ' UTC';
+
+    try {
+        // Check for required globals
+        if (typeof d3 === 'undefined') {
+            throw new Error('D3 library not loaded');
+        }
+        if (typeof topojson === 'undefined') {
+            throw new Error('TopoJSON library not loaded');
+        }
+        if (!panel) {
+            throw new Error('mapPanel element not found');
+        }
+
+        // Cache allNews for popup access
+        window.cachedAllNews = allNews;
+
+        const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19) + ' UTC';
 
     const isUSView = mapViewMode === 'us';
     const isMidEastView = mapViewMode === 'mideast';
@@ -836,6 +835,13 @@ export async function renderGlobalMap(activityData, earthquakes = [], allNews = 
         if (!e.target.closest('.us-hotspot') && !e.target.closest('.us-hotspot-popup')) hideUSHotspotPopup();
         if (!e.target.closest('.aircraft-marker') && !e.target.closest('.aircraft-popup')) hideAircraftPopup();
     });
+
+    } catch (error) {
+        console.error('Map render error:', error);
+        if (panel) {
+            panel.innerHTML = `<div class="loading-msg" style="color: #ff6b6b;">Map error: ${error.message}</div>`;
+        }
+    }
 }
 
 // Helper functions for regional views
