@@ -469,22 +469,139 @@ export async function fetchLayoffs() {
     }
 }
 
-// Fetch situation-specific news
-export async function fetchSituationNews(keywords, limit = 5) {
-    // Filter from existing news based on keywords
-    return [];
+// Fetch general news from GDELT as fallback for correlation/narrative analysis
+export async function fetchGDELTNews() {
+    const queries = [
+        'politics government',
+        'technology AI artificial intelligence',
+        'economy finance markets',
+        'world international',
+        'military defense security'
+    ];
+
+    try {
+        const results = await Promise.allSettled(
+            queries.map(async (query) => {
+                const url = `https://api.gdeltproject.org/api/v2/doc/doc?query=${encodeURIComponent(query)}&mode=artlist&maxrecords=10&format=json&sort=date`;
+                const response = await fetch(url);
+                if (!response.ok) return [];
+                const data = await response.json();
+
+                return (data.articles || []).map(article => ({
+                    source: article.domain || 'GDELT',
+                    title: article.title || '',
+                    link: article.url || '',
+                    pubDate: article.seendate || '',
+                    isAlert: ALERT_KEYWORDS.some(kw => (article.title || '').toLowerCase().includes(kw))
+                }));
+            })
+        );
+
+        const items = [];
+        results.forEach(result => {
+            if (result.status === 'fulfilled' && result.value) {
+                items.push(...result.value);
+            }
+        });
+
+        // Remove duplicates
+        const seen = new Set();
+        return items.filter(item => {
+            const key = item.title.toLowerCase().substring(0, 50);
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        }).slice(0, 50);
+    } catch (error) {
+        console.error('Error fetching GDELT news:', error);
+        return [];
+    }
 }
 
-// Fetch Intel feed (combines multiple intel sources)
+// Fetch situation-specific news using GDELT
+export async function fetchSituationNews(keywords, limit = 10) {
+    try {
+        const url = `https://api.gdeltproject.org/api/v2/doc/doc?query=${encodeURIComponent(keywords)}&mode=artlist&maxrecords=${limit}&format=json&sort=date`;
+        const response = await fetch(url);
+        if (!response.ok) return [];
+
+        const data = await response.json();
+        return (data.articles || []).map(article => ({
+            source: article.domain || 'Unknown',
+            title: article.title || '',
+            link: article.url || '',
+            pubDate: article.seendate || '',
+            isAlert: ALERT_KEYWORDS.some(kw => (article.title || '').toLowerCase().includes(kw))
+        }));
+    } catch (error) {
+        console.error('Error fetching situation news:', error);
+        return [];
+    }
+}
+
+// Fetch Intel feed using GDELT API (more reliable than RSS)
 export async function fetchIntelFeed() {
-    const results = await Promise.all(INTEL_SOURCES.map(fetchFeed));
-    const items = results.flat();
+    const items = [];
 
-    items.sort((a, b) => {
-        if (a.isAlert && !b.isAlert) return -1;
-        if (!a.isAlert && b.isAlert) return 1;
-        return new Date(b.pubDate) - new Date(a.pubDate);
-    });
+    // GDELT queries for intelligence-related news
+    const queries = [
+        { query: 'military OR defense OR pentagon', topics: ['DEFENSE'], regions: ['US'] },
+        { query: 'intelligence OR espionage OR CIA OR NSA', topics: ['INTEL'], regions: ['US'] },
+        { query: 'cyberattack OR ransomware OR hacking', topics: ['CYBER'], regions: [] },
+        { query: 'russia ukraine war conflict', topics: ['CONFLICT'], regions: ['EUROPE'] },
+        { query: 'china taiwan military', topics: ['CONFLICT'], regions: ['APAC'] },
+        { query: 'iran nuclear sanctions', topics: ['NUCLEAR', 'DIPLO'], regions: ['MENA'] },
+        { query: 'north korea missile nuclear', topics: ['NUCLEAR'], regions: ['APAC'] }
+    ];
 
-    return items.slice(0, 30);
+    try {
+        // Fetch from multiple GDELT queries in parallel
+        const results = await Promise.allSettled(
+            queries.map(async ({ query, topics, regions }) => {
+                const url = `https://api.gdeltproject.org/api/v2/doc/doc?query=${encodeURIComponent(query)}&mode=artlist&maxrecords=5&format=json&sort=date`;
+                const response = await fetch(url);
+                if (!response.ok) return [];
+                const data = await response.json();
+
+                return (data.articles || []).map(article => ({
+                    source: article.domain || 'Unknown',
+                    sourceType: article.domain?.includes('.gov') ? 'govt' :
+                               article.domain?.includes('bellingcat') ? 'osint' : 'news',
+                    title: article.title || '',
+                    link: article.url || '',
+                    pubDate: article.seendate || '',
+                    isAlert: ALERT_KEYWORDS.some(kw => (article.title || '').toLowerCase().includes(kw)),
+                    regions: regions,
+                    topics: topics
+                }));
+            })
+        );
+
+        results.forEach(result => {
+            if (result.status === 'fulfilled' && result.value) {
+                items.push(...result.value);
+            }
+        });
+
+        // Remove duplicates by title
+        const seen = new Set();
+        const unique = items.filter(item => {
+            const key = item.title.toLowerCase().substring(0, 50);
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        });
+
+        // Sort by date and alert status
+        unique.sort((a, b) => {
+            if (a.isAlert && !b.isAlert) return -1;
+            if (!a.isAlert && b.isAlert) return 1;
+            return new Date(b.pubDate) - new Date(a.pubDate);
+        });
+
+        return unique.slice(0, 30);
+    } catch (error) {
+        console.error('Error fetching intel feed:', error);
+        return [];
+    }
 }

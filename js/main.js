@@ -7,7 +7,7 @@ import {
     fetchCategory, fetchMarkets, fetchSectors, fetchCommodities,
     fetchEarthquakes, fetchWhaleTransactions,
     fetchGovContracts, fetchAINews, fetchFedBalance, fetchPolymarket,
-    fetchLayoffs, fetchSituationNews, fetchIntelFeed
+    fetchLayoffs, fetchSituationNews, fetchIntelFeed, fetchGDELTNews
 } from './data.js';
 import { renderGlobalMap } from './map.js';
 import {
@@ -117,6 +117,17 @@ async function refreshAll() {
             await renderGlobalMap();
         } catch (mapError) {
             console.error('Map render error:', mapError);
+        }
+    }
+
+    // If RSS feeds failed, use GDELT as fallback for analysis panels
+    if (allNews.length < 10) {
+        try {
+            const gdeltNews = await fetchGDELTNews();
+            allNews = [...allNews, ...gdeltNews];
+            console.log(`Added ${gdeltNews.length} GDELT articles as fallback`);
+        } catch (e) {
+            console.error('GDELT fallback error:', e);
         }
     }
 
