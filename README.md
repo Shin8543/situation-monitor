@@ -1,5 +1,6 @@
 # 全球局势监测 (Situation Monitor)
 
+# Just for fun
 这是一个基于 SvelteKit 和 Vite 构建的现代化实时全球局势监控前端应用。该平台提供新闻追踪、市场分析和重要事件的可视化面板，且已完全汉化。
 
 ## ✨ 核心特性

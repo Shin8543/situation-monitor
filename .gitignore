@@ -36,3 +36,9 @@ Thumbs.db
 
 # Archive folder
 archive/
+
+# AI
+.agents/
+.agents/logs/
+.agents/rules/
+.agents/working/
