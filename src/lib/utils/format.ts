@@ -6,10 +6,15 @@
  * Format relative time from a date
  */
 export function timeAgo(dateInput: string | number | Date): string {
+	if (!dateInput) return '';
 	const date = new Date(dateInput);
+
+	if (isNaN(date.getTime())) return 'Unknown time';
+
 	const now = new Date();
 	const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
+	if (seconds < 0) return 'just now';
 	if (seconds < 60) return 'just now';
 	if (seconds < 3600) return Math.floor(seconds / 60) + 'm';
 	if (seconds < 86400) return Math.floor(seconds / 3600) + 'h';
@@ -20,9 +25,19 @@ export function timeAgo(dateInput: string | number | Date): string {
  * Get relative time with more detail
  */
 export function getRelativeTime(dateInput: string | number | Date): string {
+	if (!dateInput) return '';
+
 	const date = new Date(dateInput);
+
+	// Check if the date is invalid
+	if (isNaN(date.getTime())) return 'Unknown date';
+
 	const now = new Date();
 	const diff = now.getTime() - date.getTime();
+
+	// Handle future dates (sometimes occurs with timezone mismatches)
+	if (diff < 0) return 'Just now';
+
 	const hours = Math.floor(diff / (1000 * 60 * 60));
 	const days = Math.floor(hours / 24);
 

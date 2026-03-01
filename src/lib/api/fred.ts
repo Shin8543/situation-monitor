@@ -273,7 +273,7 @@ function parseRssXml(xml: string, type: FedNewsType, typeLabel: string): FedNews
 	const titleRegex = /<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/i;
 	const linkRegex = /<link>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/link>/i;
 	const descRegex = /<description>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/description>/i;
-	const pubDateRegex = /<pubDate>([\s\S]*?)<\/pubDate>/i;
+	const pubDateRegex = /<pubDate>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/pubDate>/i;
 
 	let match;
 	while ((match = itemRegex.exec(xml)) !== null) {
@@ -287,7 +287,17 @@ function parseRssXml(xml: string, type: FedNewsType, typeLabel: string): FedNews
 		const title = titleMatch?.[1]?.trim() || '';
 		const link = linkMatch?.[1]?.trim() || '';
 		const description = descMatch?.[1]?.trim().replace(/<[^>]*>/g, '') || '';
-		const pubDate = pubDateMatch?.[1]?.trim() || '';
+		let pubDate = pubDateMatch?.[1]?.trim() || '';
+		let timestamp = Date.now();
+		if (pubDate) {
+			const d = new Date(pubDate);
+			if (!isNaN(d.getTime())) {
+				timestamp = d.getTime();
+				pubDate = d.toISOString(); // normalize to ISO string so getRelativeTime can safely parse it
+			} else {
+				pubDate = ''; // clear invalid date
+			}
+		}
 
 		if (!title || !link) continue;
 
@@ -301,7 +311,7 @@ function parseRssXml(xml: string, type: FedNewsType, typeLabel: string): FedNews
 			link: link.startsWith('http') ? link : `${FED_BASE_URL}${link}`,
 			description,
 			pubDate,
-			timestamp: pubDate ? new Date(pubDate).getTime() : Date.now(),
+			timestamp,
 			type,
 			typeLabel,
 			isPowellRelated,

@@ -71,13 +71,14 @@ function transformGdeltArticle(
 	const uniqueId = `gdelt-${category}-${urlHash}-${index}`;
 
 	const parsedDate = parseGdeltDate(article.seendate);
+	const pubDate = isNaN(parsedDate.getTime()) ? new Date().toISOString() : parsedDate.toISOString();
 
 	return {
 		id: uniqueId,
 		title,
 		link: article.url,
-		pubDate: article.seendate,
-		timestamp: parsedDate.getTime(),
+		pubDate: pubDate,
+		timestamp: parsedDate.getTime() || Date.now(),
 		source: source || article.domain || 'Unknown',
 		category,
 		isAlert: !!alert,
@@ -94,7 +95,7 @@ async function translateNewsItem(item: NewsItem): Promise<NewsItem> {
 	try {
 		// 翻译标题
 		const translatedTitle = await translateText(item.title);
-		
+
 		// 如果有描述也翻译
 		let translatedDescription: string | undefined;
 		if (item.description) {
