@@ -16,6 +16,7 @@
 		topics: string[];
 		pubDate?: string;
 		isPriority?: boolean;
+		translatedTitle?: string;
 	}
 
 	// Destructure store state for cleaner access
@@ -43,7 +44,8 @@
 			regions: item.region ? [item.region] : [],
 			topics: item.topics || [],
 			pubDate: item.pubDate,
-			isPriority: item.isAlert
+			isPriority: item.isAlert,
+			translatedTitle: item.translatedTitle
 		};
 	}
 
@@ -86,7 +88,10 @@
 						</div>
 					</div>
 					<a href={item.link} target="_blank" rel="noopener noreferrer" class="intel-title">
-						{item.title}
+						{item.translatedTitle || item.title}
+						{#if item.translatedTitle}
+							<span class="translation-badge">🌐</span>
+						{/if}
 					</a>
 					{#if item.pubDate}
 						<div class="intel-meta">
@@ -167,5 +172,11 @@
 		color: var(--text-secondary);
 		font-size: 0.7rem;
 		padding: 1rem;
+	}
+
+	.translation-badge {
+		font-size: 0.55rem;
+		margin-left: 0.25rem;
+		opacity: 0.6;
 	}
 </style>

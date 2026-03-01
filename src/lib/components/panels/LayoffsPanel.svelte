@@ -7,6 +7,7 @@
 		count?: string | number;
 		title: string;
 		date: string;
+		translatedTitle?: string;
 	}
 
 	interface Props {

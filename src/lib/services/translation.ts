@@ -6,8 +6,8 @@
 import { logger } from '$lib/config/api';
 
 // DeepLX API 配置
-const DEEPLX_API_URL = 'https://api.deeplx.org/Z-JfCHlUsFJvglsRpLYwGS9Syd7ycbUyjkTcdDaQLmU/translate';
-const DEEPLX_API_KEY = 'Z-JfCHlUsFJvglsRpLYwGS9Syd7ycbUyjkTcdDaQLmU';
+export const DEEPLX_API_URL = 'https://api.deeplx.org/Z-JfCHlUsFJvglsRpLYwGS9Syd7ycbUyjkTcdDaQLmU/translate';
+export const DEEPLX_API_KEY = 'Z-JfCHlUsFJvglsRpLYwGS9Syd7ycbUyjkTcdDaQLmU';
 
 // 翻译请求接口
 interface TranslateRequest {

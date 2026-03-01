@@ -222,7 +222,7 @@
 </svelte:head>
 
 <div class="app">
-	<Header onSettingsClick={() => (settingsOpen = true)} />
+	<Header onSettingsClick={() => (settingsOpen = true)} onRefreshClick={handleRefresh} />
 
 	<main class="main-content">
 		<Dashboard>

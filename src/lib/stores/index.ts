@@ -60,6 +60,7 @@ export {
 	currentStage,
 	lastRefresh,
 	autoRefreshEnabled,
+	autoRefreshInterval,
 	timeSinceRefresh,
 	categoriesWithErrors,
 	REFRESH_STAGES,

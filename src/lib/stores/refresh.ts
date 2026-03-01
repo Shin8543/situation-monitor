@@ -375,6 +375,8 @@ export const lastRefresh = derived(refresh, ($refresh) => $refresh.lastRefresh);
 
 export const autoRefreshEnabled = derived(refresh, ($refresh) => $refresh.autoRefreshEnabled);
 
+export const autoRefreshInterval = derived(refresh, ($refresh) => $refresh.autoRefreshInterval);
+
 // Time since last refresh (updates every second when subscribed)
 export const timeSinceRefresh = derived(refresh, ($refresh) => {
 	if (!$refresh.lastRefresh) return null;

@@ -7,6 +7,7 @@
 		yes: number;
 		volume: number | string;
 		url?: string;
+		translatedQuestion?: string;
 	}
 
 	interface Props {

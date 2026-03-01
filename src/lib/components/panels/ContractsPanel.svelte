@@ -6,6 +6,7 @@
 		description: string;
 		vendor: string;
 		amount: number;
+		translatedDescription?: string;
 	}
 
 	interface Props {
